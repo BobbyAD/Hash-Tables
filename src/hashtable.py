@@ -1,3 +1,5 @@
+import hashlib
+
 # '''
 # Linked List hash table key/value pair
 # '''
@@ -23,7 +25,8 @@ class HashTable:
 
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
-        return hash(key)
+
+        return hashlib.md5(key)
 
 
     def _hash_djb2(self, key):
@@ -40,7 +43,12 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
-        return self._hash(key) % self.capacity
+        
+        char_sum = 0
+        for c in self._hash(f'{key}'.encode('utf-8')).hexdigest():
+            char_sum += ord(c)
+        print(char_sum % self.capacity)
+        return char_sum % self.capacity
 
 
     def insert(self, key, value):
@@ -51,7 +59,7 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        self.storage[self._hash_mod(f"{key}".encode('utf-8'))] = value
 
 
 
@@ -63,7 +71,10 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        if self.storage[self._hash_mod(f"{key}".encode('utf-8'))]:
+            return self.storage[self._hash_mod(f"{key}".encode('utf-8'))]
+        else:
+            print("Key not found")
 
 
     def retrieve(self, key):
@@ -74,7 +85,7 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        return self.storage[self._hash_mod(f"{key}".encode('utf-8'))]
 
 
     def resize(self):
@@ -84,7 +95,9 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        old_storage = self.storage
+        self.capacity = self.capacity*2
+        self.storage = [None] * self.capacity
 
 
 
