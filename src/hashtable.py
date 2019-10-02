@@ -1,5 +1,3 @@
-import hashlib
-
 # '''
 # Linked List hash table key/value pair
 # '''
@@ -26,7 +24,7 @@ class HashTable:
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
 
-        return hashlib.md5(key)
+        return hash(key)
 
 
     def _hash_djb2(self, key):
@@ -45,9 +43,8 @@ class HashTable:
         '''
         
         char_sum = 0
-        for c in self._hash(f'{key}'.encode('utf-8')).hexdigest():
+        for c in f"{self._hash(key)}":
             char_sum += ord(c)
-        print(char_sum % self.capacity)
         return char_sum % self.capacity
 
 
@@ -59,9 +56,20 @@ class HashTable:
 
         Fill this in.
         '''
-        self.storage[self._hash_mod(f"{key}".encode('utf-8'))] = value
-
-
+        
+        if self.storage[self._hash_mod(key)] is not None:
+            current_node = self.storage[self._hash_mod(key)]
+            if current_node.key == key:
+                    current_node.value = value
+                    return
+            while current_node.next is not None:
+                current_node = current_node.next
+                if current_node.key == key:
+                    current_node.value = value
+                    return
+            current_node.next = LinkedPair(key, value)
+        else:
+            self.storage[self._hash_mod(key)] = LinkedPair(key, value)
 
     def remove(self, key):
         '''
@@ -71,10 +79,26 @@ class HashTable:
 
         Fill this in.
         '''
-        if self.storage[self._hash_mod(f"{key}".encode('utf-8'))]:
-            return self.storage[self._hash_mod(f"{key}".encode('utf-8'))]
-        else:
-            print("Key not found")
+        if self.storage[self._hash_mod(key)]:
+            if self.storage[self._hash_mod(key)].key == key:
+                if self.storage[self._hash_mod(key)].next is not None:
+                    next_node = self.storage[self._hash_mod(key)].next
+                    self.storage[self._hash_mod(key)] = next_node
+                else:
+                    self.storage[self._hash_mod(key)] = None
+            else:
+                prev_node = None
+                current_node = self.storage[self._hash_mod(key)]
+                next_node = self.storage[self._hash_mod(key)].next
+                while next_node is not None:
+                    prev_node = current_node
+                    current_node = next_node
+                    next_node = current_node.next
+                    if current_node.key == key:
+                        prev_node.next = next_node
+                        return
+        print("Key not found")
+        return
 
 
     def retrieve(self, key):
@@ -85,7 +109,16 @@ class HashTable:
 
         Fill this in.
         '''
-        return self.storage[self._hash_mod(f"{key}".encode('utf-8'))]
+        if self.storage[self._hash_mod(key)]:
+            if self.storage[self._hash_mod(key)].key == key:
+                return self.storage[self._hash_mod(key)].value
+            else:
+                current_node = self.storage[self._hash_mod(key)]
+                while current_node.next is not None:
+                    current_node = current_node.next
+                    if current_node.key == key:
+                        return current_node.value
+        return None
 
 
     def resize(self):
@@ -95,9 +128,19 @@ class HashTable:
 
         Fill this in.
         '''
-        old_storage = self.storage
-        self.capacity = self.capacity*2
-        self.storage = [None] * self.capacity
+        old_storage = [None]*self.capacity
+        for i in range(0, len(self.storage)):
+            old_storage[i] = self.storage[i]
+        self.storage = [None]*self.capacity*2
+        self.capacity *= 2
+        for i in old_storage:
+            if i is not None:
+                current_node = i
+                while current_node.next is not None:
+                    self.insert(current_node.key, current_node.value)
+                    current_node = current_node.next
+                self.insert(current_node.key, current_node.value)
+
 
 
 
